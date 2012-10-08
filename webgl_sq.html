@@ -1,0 +1,262 @@
+<html>
+  <head>
+    <title>webgl hax</title>
+<script id="shader-fs" type="x-shader/x-fragment">
+precision mediump float;
+uniform float time;
+varying vec2 vpos;
+
+int m;
+
+float pow8(float x) { x *= x; x *= x; return x*x; }
+
+float length8( in vec2 x ) {
+  return pow(pow8(x.x) + pow8(x.y), 0.125);
+}
+
+float sdTorus88( in vec3 p, float s, float t ) {
+  vec2 q = vec2(length8(p.xy)-s,p.z);
+  return length8(q)-t;
+}
+
+float udRoundBox( vec3 p, vec3 b, float r )
+{
+  return length(max(abs(p)-b,0.0))-r;
+}
+
+float distToScene(in vec3 p) {
+  float d = 1e30;
+  float dplane = p.y + 100.0;
+  if (dplane < d) {
+    m = 0;
+    d = dplane;
+  }
+  float douter = sdTorus88(p, 70.0, 15.0);
+  if (douter < d) {
+    m = 2;
+    d = douter;
+  }
+  float dinner = udRoundBox(p, vec3(20, 20, 5), 10.0);
+  if (dinner < d) {
+    m = 2;
+    d = dinner;
+  }
+  return d;
+}
+
+vec3 rotateY(in vec3 p, in float c, in float s) {
+  return vec3(p.x*c + p.z*s,
+              p.y,
+              -p.x*s + p.z*c);
+}
+
+float shadow(in vec3 ro, in vec3 rd, float mint, float maxt) {
+  float res = 1.0;
+  float t = mint;
+  for (int i = 0; i < 32; i++) {
+    if (t >= maxt) break;
+    float h = distToScene(ro+rd*t);
+    if (h < 0.001) {
+      return 0.0;
+    }
+    res = min( res, 20.0*h/t );
+    t += h;
+  }
+  return res;
+}
+
+
+// ray marching?
+void main() {
+  // camera direction & initial ray position @-z
+  float ct = cos(time+0.1);
+  float st = sin(time+0.1);
+  vec3 ray = vec3(150.0*st, 90.0 + 40.0*sin(time*1.0), -150.0*ct);
+  vec3 camz = normalize(-ray);
+  vec3 lightpos = vec3(200.0*sin(time*3.2),300,200.0*sin(time*2.0));
+  vec3 camx = normalize(cross(camz, vec3(0,1,0)));
+  vec3 camy = normalize(cross(camx, camz));
+
+  float f=1.0;
+  const float maxd=60000.0; //Max depth
+  vec3 p;
+  vec3 dir = normalize(vec3(vpos.x*1.33, vpos.y, 1.0));
+  dir = camx*dir.x + camy*dir.y + camz*dir.z;
+  m = -1;
+  for(int i=0;i<256;i++){
+    p = ray+dir*f;
+    float dist = distToScene(p);
+    f+=dist;
+    if (abs(dist)<.001||f>maxd) break;
+  }
+  int mat = m;
+
+  const vec4 bgcolor = vec4(0.0, 0.0, 0.0, 1.0);
+  const vec3 lightcol = vec3(1.0, 1.0, 1.0);
+  if (m != -1 && f<maxd){
+    const float n_er=0.01;
+    // ugh, we gotta make this simpler
+    float v1=distToScene(vec3(p.x+n_er,p.y-n_er,p.z-n_er));
+    float v2=distToScene(vec3(p.x-n_er,p.y-n_er,p.z+n_er));
+    float v3=distToScene(vec3(p.x-n_er,p.y+n_er,p.z-n_er));
+    float v4=distToScene(vec3(p.x+n_er,p.y+n_er,p.z+n_er));
+    vec3 n=normalize(vec3(v4+v1-v3-v2,v3+v4-v1-v2,v2+v4-v3-v1));
+    vec3 lightdir = normalize(lightpos - p);
+    float s = max(0.3, shadow(p, lightdir, 0.01, length(p-lightpos)));
+    float l = max(0.1, max(dot(lightdir, n), 0.0) * s);
+    vec3 c = vec3(0.0, 0.4, 1.0);
+    if (mat == 0) {
+      c = vec3(0.7, 0.7, 0.7);
+    }
+    vec4 objcolor = vec4(c*l + lightcol*pow(l, 10.0), 1.0);
+    gl_FragColor = objcolor;
+  } else {
+    gl_FragColor = bgcolor;
+  }
+}
+
+</script>
+<script id="shader-vs" type="x-shader/x-vertex">
+precision mediump float;
+
+attribute vec2 aVertexPosition;
+varying vec2 vpos;
+
+void main() {
+  gl_Position = vec4(aVertexPosition, 1.0, 1.0);
+  vpos = gl_Position.xy;
+}
+</script>
+
+<script>
+var gl;
+var glvars = {};
+
+// cribbed from http://learningwebgl.com/lessons/example01/
+// todo: elide this, optimize shader inclusion
+function getShader(gl, id) {
+  var shaderScript = document.getElementById(id);
+  if (!shaderScript) {
+    return null;
+  }
+
+  var str = "";
+  var k = shaderScript.firstChild;
+  while (k) {
+    if (k.nodeType == 3) {
+      str += k.textContent;
+    }
+    k = k.nextSibling;
+  }
+
+  var shader;
+  if (shaderScript.type == "x-shader/x-fragment") {
+    shader = gl.createShader(gl.FRAGMENT_SHADER);
+  } else if (shaderScript.type == "x-shader/x-vertex") {
+    shader = gl.createShader(gl.VERTEX_SHADER);
+  } else {
+    return null;
+  }
+
+  gl.shaderSource(shader, str);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert(gl.getShaderInfoLog(shader));
+    return null;
+  }
+
+  return shader;
+}
+
+function initShaders() {
+  var fragmentShader = getShader(gl, "shader-fs");
+  var vertexShader = getShader(gl, "shader-vs");
+
+  shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vertexShader);
+  gl.attachShader(shaderProgram, fragmentShader);
+  gl.linkProgram(shaderProgram);
+
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  gl.useProgram(shaderProgram);
+
+  glvars.aVertexPosition = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+  gl.enableVertexAttribArray(glvars.aVertexPosition);
+
+  glvars.uniformTime = gl.getUniformLocation(shaderProgram, "time");
+}
+
+function initBuffers() {
+  vertexPositionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+  var vertices = [
+     1.0,  1.0,
+    -1.0,  1.0,
+     1.0, -1.0,
+    -1.0, -1.0];
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  vertexPositionBuffer.itemSize = 2;
+  vertexPositionBuffer.numItems = 4;
+}
+
+var startTime = Date.now();
+
+function drawScene() {
+  gl.uniform1f(glvars.uniformTime, (Date.now() - startTime)/1000.0);
+  gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+  gl.vertexAttribPointer(glvars.aVertexPosition, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+
+function f() {
+  var canvas = document.getElementById('a');
+
+  try {
+    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+  }
+  catch(e) {}
+  if (!gl) {
+    alert("Unable to initialize WebGL. Your browser may not support it.");
+    return;
+  }
+  gl.viewportWidth = canvas.width;
+  gl.viewportHeight = canvas.height;
+
+  initShaders();
+  initBuffers();
+
+  gl.clearColor(0.2, 0.2, 0.2, 1.0);  // Set clear color to black, fully opaque
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  // shim layer with setTimeout fallback
+  window.requestAnimFrame = (function(){
+    return  window.requestAnimationFrame       || 
+            window.webkitRequestAnimationFrame || 
+            window.mozRequestAnimationFrame    || 
+            window.oRequestAnimationFrame      || 
+            window.msRequestAnimationFrame     || 
+            function( callback ){
+              window.setTimeout(callback, 1000 / 20);
+            };
+  })();
+
+  (function animloop(){
+    requestAnimFrame(animloop);
+    drawScene();
+  })();
+}
+</script>
+  </head>
+  <body onload="f()">
+    <canvas id=a width=400 height=300 />
+  </body>
+</html>
