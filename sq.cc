@@ -12,7 +12,7 @@ vec3 lcol(0.7,0.5,0.5);
 float mshiny[] = {100,10,10,10};
 vec3 mcol[] = {
   vec3(1.0f, 1.0f, 1.0f),
-  vec3(0.0f, 0.0f, 1.0f),
+  vec3(0.5f, 0.5f, 0.5f),
   vec3(0.0f, 0.4f, 1.0f),
   vec3(0.2f, 1.0f, 0.0f)};
 
@@ -23,7 +23,7 @@ float length8(float x, float y) {
 
 float sdTorus88(const vec3& p, float s, float t)
 {
-  return length8(length8(p.x, p.z) - s, p.y) - t;
+  return length8(length8(p.x, p.y) - s, p.z) - t;
 }
 
 float udRoundBox(const vec3& p, const vec3& b, float r)
@@ -40,10 +40,10 @@ float sdSphere( vec3 p, float s )
 float dist(const vec3 &p, int *m) {
   *m = -1;
   float d = 1e30;
-  float dplane = p.y + 30;
+  float dplane = p.y + 100;
   if (dplane < d) {
-    //*m = ((lrint(p.x*0.03)&1)^(lrint(p.z*0.03)&1));
-    *m = 0;
+    *m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
+    //*m = 0;
     d = dplane;
   }
   float douter = sdTorus88(p, 70, 15);
@@ -51,7 +51,7 @@ float dist(const vec3 &p, int *m) {
     *m = 2;
     d = douter;
   }
-  float dinner = udRoundBox(p, vec3(20, 5, 20), 5);
+  float dinner = udRoundBox(p, vec3(20, 20, 5), 5);
   if (dinner < d) {
     *m = 2;
     d = dinner;
@@ -144,7 +144,7 @@ int main()
 {
   int x,y;
   for(;;) {
-    vec3 campos = vec3(100*sin(frame_*0.02), 120 + 40*sin(frame_*0.03), -100*cos(frame_*0.01));
+    vec3 campos = vec3(150*sin(frame_*0.02), 120 + 40*sin(frame_*0.03), -150*cos(frame_*0.02));
     vec3 camz = normalize(campos*-1);
     //vec3 lightpos = vec3(200,400,0);
     vec3 lightpos = campos;
