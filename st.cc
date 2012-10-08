@@ -4,45 +4,17 @@
 #include <unistd.h>
 #include <algorithm>
 #include "palette.h"
+#include "vec3.h"
 
 float frame_ = 0;
 
-struct vec3 {
-  float x,y,z;
-  vec3() {}
-  vec3(float a, float b, float c) { x=a; y=b; z=c; }
-};
-
-vec3 operator+(const vec3 &a, const vec3 &b) {
-  return {a.x+b.x,a.y+b.y,a.z+b.z};
-}
-vec3 operator-(const vec3& a, const vec3& b) {
-  return {a.x-b.x,a.y-b.y,a.z-b.z};
-}
-vec3 operator*(const vec3& a, float b) {
-  return {a.x*b,a.y*b,a.z*b};
-}
-float operator*(const vec3& a, const vec3& b) {
-  return a.x*b.x+a.y*b.y+a.z*b.z;
-}
-float length(const vec3& v) { return sqrt(v*v); }
-vec3 normalize(const vec3 &v) {
-  return v*(1.0/length(v));
-}
-vec3 abs(const vec3& v) {
-  return vec3(fabs(v.x), fabs(v.y), fabs(v.z));
-}
-vec3 max(const vec3& v, float f) {
-  return vec3(std::max(v.x, f), std::max(v.y, f), std::max(v.z, f));
-}
-vec3 min(const vec3& v, float f) {
-  return vec3(std::min(v.x, f), std::min(v.y, f), std::min(v.z, f));
-}
-vec3 cross(const vec3& a, const vec3& b) {
-  return vec3(a.y*b.z - a.z*b.y,
-              a.z*b.x - a.x*b.z,
-              a.x*b.y - a.y*b.x);
-}
+vec3 lcol(0.7,0.5,0.5);
+float mshiny[] = {100,10,10,10};
+vec3 mcol[] = {
+  vec3(1.0f, 1.0f, 1.0f),
+  vec3(0.0f, 0.0f, 1.0f),
+  vec3(1.0f, 0.2f, 0.0f),
+  vec3(0.2f, 1.0f, 0.0f)};
 
 float udRoundBox(const vec3& p, const vec3& b, float r)
 {
@@ -85,8 +57,8 @@ float dist(const vec3 &p, int *m) {
   return d;
 }
 
-// nearest color, offset o
-void nearest(vec3 c, int o, int *fg, int *bg) {
+// nearest color fg/bg, dithering offset o
+void nearestcolor(vec3 c, int o, int *fg, int *bg) {
   // brute force
   float minerr = 65536*30;
   *fg = -1; *bg = -1;
@@ -137,14 +109,6 @@ float shadow(const vec3& ro, const vec3& rd, float mint, float maxt) {
   return res;
 }
 
-vec3 lcol = {0.7,0.5,0.5};
-float mshiny[] = {100,10,10,10};
-vec3 mcol[] = {
-  vec3(1.0f, 1.0f, 1.0f),
-  vec3(0.0f, 0.0f, 1.0f),
-  vec3(1.0f, 0.0f, 0.0f),
-  vec3(0.6f, 0.6f, 0.0f)};
-
 vec3 lighting(const vec3 &p, const vec3& n, int m, const vec3& lightpos) {
   vec3 lightdir = normalize(lightpos - p);
   float s = std::max(0.3f, shadow(p, lightdir, 0.01, length(p-lightpos)));
@@ -159,7 +123,7 @@ int main()
 {
   int x,y;
   for(;;) {
-    vec3 campos = vec3(100*sin(frame_*0.01), 100 + 50*sin(frame_*0.07), -100*cos(frame_*0.01));
+    vec3 campos = vec3(100*sin(frame_*0.01), 110 + 100*sin(frame_*0.03), -100*cos(frame_*0.01));
     vec3 camz = normalize(campos*-1);
     //vec3 lightpos = vec3(200,400,0);
     vec3 lightpos = campos;
@@ -176,7 +140,7 @@ int main()
 #ifdef AA
         for(float xx = -0.25;xx<=0.25;xx+=0.5) { // 2 x samples
           for(float yy = -0.75;yy<=0.75;yy+=0.5) { // 4 y samples
-            vec3 dir = normalize(vec3(x-40.0f+xx,25.0f-2.0f*y+yy,40.0f));
+            vec3 dir = normalize(vec3(x-40.0f+xx,25.0f-2.0f*y+yy,20.0f));
 #else
             vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,50.0f));
 #endif
@@ -201,9 +165,9 @@ int main()
 #ifdef AA
           }
         }
-        nearest(color * 0.125, -48+4*bayer[(x&3) + (y&3)*4], &fg, &bg);
+        nearestcolor(color * 0.125, -48+4*bayer[(x&3) + (y&3)*4], &fg, &bg);
 #else
-        nearest(color, -48+4*bayer[(x&3) + (y&3)*4], &fg, &bg);
+        nearestcolor(color, -48+4*bayer[(x&3) + (y&3)*4], &fg, &bg);
 #endif
         //printf("%g %g %g -> %d\n", color.x, color.y, color.z, fg);
         if(bg >= 0) printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+(bg&7), 30+(fg&7));
