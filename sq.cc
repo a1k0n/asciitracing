@@ -11,8 +11,8 @@ float frame_ = 0;
 vec3 lcol(0.7,0.5,0.5);
 float mshiny[] = {100,10,10,10};
 vec3 mcol[] = {
-  vec3(1.0f, 1.0f, 1.0f),
-  vec3(0.5f, 0.5f, 0.5f),
+  vec3(0.7f, 0.7f, 0.7f),
+  vec3(0.0f, 0.0f, 0.5f),
   vec3(0.0f, 0.4f, 1.0f),
   vec3(0.2f, 1.0f, 0.0f)};
 
@@ -42,8 +42,8 @@ float dist(const vec3 &p, int *m) {
   float d = 1e30;
   float dplane = p.y + 100;
   if (dplane < d) {
-    *m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
-    //*m = 0;
+    //*m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
+    *m = 0;
     d = dplane;
   }
   float douter = sdTorus88(p, 70, 15);
@@ -51,7 +51,7 @@ float dist(const vec3 &p, int *m) {
     *m = 2;
     d = douter;
   }
-  float dinner = udRoundBox(p, vec3(20, 20, 5), 5);
+  float dinner = udRoundBox(p, vec3(20, 20, 5), 10);
   if (dinner < d) {
     *m = 2;
     d = dinner;
@@ -144,10 +144,11 @@ int main()
 {
   int x,y;
   for(;;) {
-    vec3 campos = vec3(150*sin(frame_*0.02), 120 + 40*sin(frame_*0.03), -150*cos(frame_*0.02));
+    vec3 campos = vec3(150*sin(frame_*0.02), 90 + 40*sin(frame_*0.03), -150*cos(frame_*0.02));
     vec3 camz = normalize(campos*-1);
-    //vec3 lightpos = vec3(200,400,0);
-    vec3 lightpos = campos;
+    //vec3 lightpos = vec3(0,200,-400);
+    vec3 lightpos = vec3(200.0*sin(frame_*0.05),300,200.0*sin(frame_*0.1));
+    //vec3 lightpos = campos;
     //vec3 lightpos = vec3(100*sin(frame_*0.08), 50, -100*cos(frame_*0.04));
     //vec3 lightpos = vec3(50*sin(frame_*0.02), 50, 0);
     vec3 lightpos2 = vec3(0, 200, 0);
@@ -163,7 +164,7 @@ int main()
           for(float yy = -0.75;yy<=0.75;yy+=0.5) { // 4 y samples
             vec3 dir = normalize(vec3(x-40.0f+xx,25.0f-2.0f*y+yy,20.0f));
 #else
-            vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,50.0f));
+            vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,40.0f));
 #endif
             dir = camx*dir.x + camy*dir.y + camz*dir.z;
             // ray = (0) + dir*t
@@ -182,6 +183,8 @@ int main()
                 break;
               }
               t += d;
+              if (t > 6000)
+                break;
             }
 #ifdef AA
           }
