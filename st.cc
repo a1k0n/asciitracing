@@ -63,11 +63,9 @@ float shadow(const vec3& ro, const vec3& rd, float mint, float maxt) {
   for (float t = mint; t < maxt; ) {
     float h = dist(ro+rd*t, &m);
     if (h < 0.001) {
-      //printf("h=%g hit\n", h);
       return 0;
     }
     res = std::min( res, 4.0f*h/t );
-    //printf("res=%g, h=%g t=%g 2h/t=%g\n", res, h, t, 2.0f*h/t);
     t += h;
   }
   return res;
@@ -93,7 +91,6 @@ int main()
     vec3 lightpos2 = vec3(0, 200, 0);
     vec3 camx = normalize(cross(camz, vec3(0,1,0)));
     vec3 camy = normalize(cross(camx, camz));
-    //printf("camera: %g,%g,%g  (%g,%g,%g right)\n", campos.x, campos.y, campos.z, camx.x, camx.y, camx.z);
     for(y=0;y<24;y++) {
       for(x=0;x<80;x++) {
         vec3 color = vec3(0,0,0);
@@ -106,7 +103,6 @@ int main()
             vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,50.0f));
 #endif
             dir = camx*dir.x + camy*dir.y + camz*dir.z;
-            // ray = (0) + dir*t
             float t = 0;
             int m = -1;
             for (int iter = 0; iter < 64 && t < 1e6; iter++) {
@@ -118,7 +114,6 @@ int main()
                                         d - dist(p+vec3(0,0.01,0), &m),
                                         d - dist(p+vec3(0,0,0.01), &m)));
                 color = color + lighting(p, n, m, lightpos);
-                //color = color + lighting(p, n, m, lightpos2)*0.2;
                 break;
               }
               t += d;
@@ -140,10 +135,3 @@ int main()
     printf("\x1b[24A");
   }
 }
-
-#if 0
-      int bg = 0;
-      if(bg)
-        printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+bg, 30+(fg&7));
-      else
-#endif

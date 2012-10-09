@@ -9,13 +9,14 @@
 
 float frame_ = 0;
 
+// light colors, material colors
 vec3 lcol(0.7,0.5,0.5);
-float mshiny[] = {100,10,10,10};
 vec3 mcol[] = {
-  vec3(0.7f, 0.7f, 0.7f),
-  vec3(0.0f, 0.0f, 0.5f),
-  vec3(0.0f, 0.4f, 1.0f),
-  vec3(0.2f, 1.0f, 0.0f)};
+  vec3(1.7f, 1.7f, 1.7f),  // "floor" plane
+  vec3(0.0f, 0.0f, 0.5f),  // "floor" checkerboard color (not currently used)
+  vec3(0.0f, 0.4f, 1.0f)}; // logo color
+// material shininess
+float mshiny[] = {100,10,10};
 
 // http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 float pow8(float t) { t*=t; t*=t; t*=t; return t; }
@@ -38,7 +39,7 @@ float sdSphere( vec3 p, float s )
   return length(p)-s;
 }
 
-// returns minimum distance to scene, material m, and normal n
+// returns minimum distance to scene, material m
 float dist(const vec3 &p, int *m) {
   *m = -1;
   float d = 1e30;
@@ -64,17 +65,17 @@ float dist(const vec3 &p, int *m) {
   return d;
 }
 
+// ambient occlusion hack for soft shadows
 float shadow(const vec3& ro, const vec3& rd, float mint, float maxt) {
   int m;
   float res = 1.0;
   for (float t = mint; t < maxt; ) {
     float h = dist(ro+rd*t, &m);
     if (h < 0.001) {
-      //printf("h=%g hit\n", h);
       return 0;
     }
-    res = std::min( res, 4.0f*h/t );
-    //printf("res=%g, h=%g t=%g 2h/t=%g\n", res, h, t, 2.0f*h/t);
+    // the constant (20) tunes the hardness/softness of the shadows
+    res = std::min( res, 20.0f*h/t );
     t += h;
   }
   return res;
@@ -87,25 +88,15 @@ vec3 lighting(const vec3 &p, const vec3& n, int m, const vec3& lightpos) {
   return mcol[m]*l + lcol*pow(l, mshiny[m]);
 }
 
-// ordered dithering Bayer matrix:
-const int bayer[] = {1,9,3,11,13,5,15,7,4,12,2,10,16,8,14,6};
-// use bayer[i&3 + (j&3)*4] / 17
 int main()
 {
   int x,y;
   for(;;) {
     vec3 campos = vec3(150*sin(frame_*0.02), 50 + 40*sin(frame_*0.03), -150*cos(frame_*0.02));
-    vec3 camz = normalize(campos*-1);
-    //vec3 lightpos = vec3(0,200,-400);
-    //vec3 lightpos = vec3(200.0*sin(frame_*0.05),100,200.0*sin(frame_*0.1));
     vec3 lightpos = vec3(200.0*sin(frame_*0.05),100,campos.z);
-    //vec3 lightpos = campos;
-    //vec3 lightpos = vec3(100*sin(frame_*0.08), 50, -100*cos(frame_*0.04));
-    //vec3 lightpos = vec3(50*sin(frame_*0.02), 50, 0);
-    vec3 lightpos2 = vec3(0, 200, 0);
+    vec3 camz = normalize(campos*-1);
     vec3 camx = normalize(cross(camz, vec3(0,1,0)));
     vec3 camy = normalize(cross(camx, camz));
-    //printf("camera: %g,%g,%g  (%g,%g,%g right)\n", campos.x, campos.y, campos.z, camx.x, camx.y, camx.z);
     for(y=0;y<24;y++) {
       for(x=0;x<80;x++) {
         vec3 color = vec3(0,0,0);
@@ -130,7 +121,6 @@ int main()
                                         d - dist(p+vec3(0,0.01,0), &m),
                                         d - dist(p+vec3(0,0,0.01), &m)));
                 color = color + lighting(p, n, m, lightpos);
-                //color = color + lighting(p, n, m, lightpos2)*0.2;
                 break;
               }
               t += d;
@@ -144,7 +134,6 @@ int main()
 #else
         nearestcolor(color, x, y, &fg, &bg);
 #endif
-        //printf("%g %g %g -> %d\n", color.x, color.y, color.z, fg);
         if(bg >= 0) printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+(bg&7), 30+(fg&7));
         else if(fg >= 0) printf("\x1b[0;%d;%dm#", !!(fg&8), 30+(fg&7));
         else printf("\x1b[0m ");
@@ -159,9 +148,3 @@ int main()
   }
 }
 
-#if 0
-      int bg = 0;
-      if(bg)
-        printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+bg, 30+(fg&7));
-      else
-#endif
