@@ -83,7 +83,7 @@ float shadow(const vec3& ro, const vec3& rd, float mint, float maxt) {
 vec3 lighting(const vec3 &p, const vec3& n, int m, const vec3& lightpos) {
   vec3 lightdir = normalize(lightpos - p);
   float s = std::max(0.3f, shadow(p, lightdir, 0.01, length(p-lightpos)));
-  float l = std::max(0.1f, std::max(-(lightdir*n), 0.0f) * s);
+  float l = std::max(0.1f, std::max(-dot(lightdir,n), 0.0f) * s);
   return mcol[m]*l + lcol*pow(l, mshiny[m]);
 }
 
