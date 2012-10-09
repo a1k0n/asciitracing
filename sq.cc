@@ -144,10 +144,11 @@ int main()
 {
   int x,y;
   for(;;) {
-    vec3 campos = vec3(150*sin(frame_*0.02), 90 + 40*sin(frame_*0.03), -150*cos(frame_*0.02));
+    vec3 campos = vec3(150*sin(frame_*0.02), 50 + 40*sin(frame_*0.03), -150*cos(frame_*0.02));
     vec3 camz = normalize(campos*-1);
     //vec3 lightpos = vec3(0,200,-400);
-    vec3 lightpos = vec3(200.0*sin(frame_*0.05),300,200.0*sin(frame_*0.1));
+    //vec3 lightpos = vec3(200.0*sin(frame_*0.05),100,200.0*sin(frame_*0.1));
+    vec3 lightpos = vec3(200.0*sin(frame_*0.05),100,campos.z);
     //vec3 lightpos = campos;
     //vec3 lightpos = vec3(100*sin(frame_*0.08), 50, -100*cos(frame_*0.04));
     //vec3 lightpos = vec3(50*sin(frame_*0.02), 50, 0);
@@ -197,6 +198,7 @@ int main()
         if(bg >= 0) printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+(bg&7), 30+(fg&7));
         else if(fg >= 0) printf("\x1b[0;%d;%dm#", !!(fg&8), 30+(fg&7));
         else printf("\x1b[0m ");
+        if (y == 23 && x == 65) { printf("\x1b[0;1;30mandy@a1k0n.net"); break; }
       }
       printf("\x1b[0m\n");
     }
