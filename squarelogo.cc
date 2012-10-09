@@ -134,9 +134,7 @@ int main()
 #else
         nearestcolor(color, x, y, &fg, &bg);
 #endif
-        if(bg >= 0) printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+(bg&7), 30+(fg&7));
-        else if(fg >= 0) printf("\x1b[0;%d;%dm#", !!(fg&8), 30+(fg&7));
-        else printf("\x1b[0m ");
+        printcolor(fg, bg);
         if (y == 23 && x == 65) { printf("\x1b[0;1;30mandy@a1k0n.net"); break; }
       }
       printf("\x1b[0m\n");
