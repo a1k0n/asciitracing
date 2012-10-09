@@ -121,12 +121,6 @@ int main()
               vec3 p = dir*t + campos;
               float d = dist(p, &m);
               if (d < 0.001) {
-                // we hit something.  let's get a normal vector.
-                /*
-                vec3 n = normalize(vec3(d - dist(p+vec3(0.01,0,0), &m),
-                                        d - dist(p+vec3(0,0.01,0), &m),
-                                        d - dist(p+vec3(0,0,0.01), &m)));
-                                        */
                 color = color + lighting(p, m, lightpos);
                 break;
               }
