@@ -81,10 +81,15 @@ float shadow(const vec3& ro, const vec3& rd, float mint, float maxt) {
   return res;
 }
 
-vec3 lighting(const vec3 &p, const vec3& n, int m, const vec3& lightpos) {
+vec3 lighting(const vec3 &p, int m, const vec3& lightpos) {
   vec3 lightdir = normalize(lightpos - p);
+  // yet another trick from iq: use the distance field to compute dot(light,
+  // normal) instead of explicitly finding a normal.
+  // http://www.pouet.net/topic.php?which=7535&page=1
+  int _m;
+  float diffuse = std::max(0.0f, 10.0f*dist(p+lightdir*0.1, &_m));
   float s = std::max(0.3f, shadow(p, lightdir, 0.01, length(p-lightpos)));
-  float l = std::max(0.1f, std::max(-dot(lightdir,n), 0.0f) * s);
+  float l = std::max(0.1f, diffuse * s);
   return mcol[m]*l + lcol*pow(l, mshiny[m]);
 }
 
@@ -117,10 +122,12 @@ int main()
               float d = dist(p, &m);
               if (d < 0.001) {
                 // we hit something.  let's get a normal vector.
+                /*
                 vec3 n = normalize(vec3(d - dist(p+vec3(0.01,0,0), &m),
                                         d - dist(p+vec3(0,0.01,0), &m),
                                         d - dist(p+vec3(0,0,0.01), &m)));
-                color = color + lighting(p, n, m, lightpos);
+                                        */
+                color = color + lighting(p, m, lightpos);
                 break;
               }
               t += d;

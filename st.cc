@@ -65,7 +65,7 @@ float shadow(const vec3& ro, const vec3& rd, float mint, float maxt) {
     if (h < 0.001) {
       return 0;
     }
-    res = std::min( res, 4.0f*h/t );
+    res = std::min( res, 10.0f*h/t );
     t += h;
   }
   return res;
@@ -84,10 +84,10 @@ int main()
   for(;;) {
     vec3 campos = vec3(100*sin(frame_*0.01), 110 + 100*sin(frame_*0.03), -100*cos(frame_*0.01));
     vec3 camz = normalize(campos*-1);
-    //vec3 lightpos = vec3(200,400,0);
-    vec3 lightpos = campos;
+    //vec3 lightpos = vec3(200,400,campos.z);
+    //vec3 lightpos = campos;
     //vec3 lightpos = vec3(100*sin(frame_*0.08), 50, -100*cos(frame_*0.04));
-    //vec3 lightpos = vec3(50*sin(frame_*0.02), 50, 0);
+    vec3 lightpos = vec3(100*sin(frame_*0.037), 200, campos.z);
     vec3 lightpos2 = vec3(0, 200, 0);
     vec3 camx = normalize(cross(camz, vec3(0,1,0)));
     vec3 camy = normalize(cross(camx, camz));
