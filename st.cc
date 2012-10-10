@@ -86,6 +86,7 @@ vec3 lighting(const vec3 &p, int m, const vec3& lightpos) {
 int main()
 {
   int x,y;
+  render_init();
   for(;;) {
     vec3 campos = vec3(100*sin(frame_*0.01), 110 + 100*sin(frame_*0.03), -100*cos(frame_*0.01));
     vec3 camz = normalize(campos*-1);
@@ -122,11 +123,10 @@ int main()
 #ifdef AA
           }
         }
-        nearestcolor(color * 0.125, x, y, &fg, &bg);
+        render_color(color * 0.125, x, y);
 #else
-        nearestcolor(color, x, y, &fg, &bg);
+        render_color(color, x, y);
 #endif
-        printcolor(fg, bg);
       }
       printf("\x1b[0m\n");
     }

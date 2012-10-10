@@ -13,7 +13,7 @@ float frame_ = 0;
 vec3 lcol(0.7,0.5,0.5);
 vec3 mcol[] = {
   vec3(1.7f, 1.7f, 1.7f),  // "floor" plane
-  vec3(0.0f, 0.0f, 0.5f),  // "floor" checkerboard color (not currently used)
+  vec3(0.5f, 0.5f, 0.5f),  // "floor" checkerboard color (not currently used)
   vec3(0.0f, 0.4f, 1.0f)}; // logo color
 // material shininess
 float mshiny[] = {100,10,10};
@@ -46,8 +46,8 @@ float dist(const vec3 &p, int *m) {
   float dplane = p.y + 100;
   if (dplane < d) {
     // uncomment the next line for a checkerboard instead of a flat plane
-    //*m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
-    *m = 0;
+    *m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
+    //*m = 0;
     d = dplane;
   }
   // outer torus
@@ -96,6 +96,7 @@ vec3 lighting(const vec3 &p, int m, const vec3& lightpos) {
 int main()
 {
   int x,y;
+  render_init();
   for(;;) {
     vec3 campos = vec3(150*sin(frame_*0.02), 50 + 40*sin(frame_*0.03), -150*cos(frame_*0.02));
     vec3 lightpos = vec3(200.0*sin(frame_*0.05),100,campos.z);
@@ -105,7 +106,6 @@ int main()
     for(y=0;y<24;y++) {
       for(x=0;x<80;x++) {
         vec3 color = vec3(0,0,0);
-        int fg, bg;
 #ifdef AA
         for(float xx = -0.25;xx<=0.25;xx+=0.5) { // 2 x samples
           for(float yy = -0.75;yy<=0.75;yy+=0.5) { // 4 y samples
@@ -131,11 +131,10 @@ int main()
 #ifdef AA
           }
         }
-        nearestcolor(color * 0.125, x, y, &fg, &bg);
+        render_color(color * 0.125, x, y);
 #else
-        nearestcolor(color, x, y, &fg, &bg);
+        render_color(color, x, y);
 #endif
-        printcolor(fg, bg);
         if (y == 23 && x == 65) { printf("\x1b[0;1;30mandy@a1k0n.net"); break; }
       }
       printf("\x1b[0m\n");
