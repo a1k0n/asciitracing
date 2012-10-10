@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "palette.h"
 #include "vec3.h"
 
@@ -31,9 +32,6 @@ void nearestcolor(const vec3& c, int *fg, int *bg) {
       float eu = -0.148*er - 0.291*eg + 0.439*eb;
       float err = ey*ey + ev*ev + eu*eu;
 #if 0
-      err += 0.001*(vr*vr + vg*vg + vb*vg);
-#endif
-#if 0
       float vy =  0.257*vr + 0.504*vg + 0.098*vb;
       float vv =  0.439*vr - 0.368*vg - 0.071*vb;
       float vu = -0.148*vr - 0.291*vg + 0.439*vb;
@@ -41,7 +39,7 @@ void nearestcolor(const vec3& c, int *fg, int *bg) {
 #endif
 #else
       float err = er*er + eg*eg + eb*eb;
-      err += 0.001*(vr*vr + vg*vg + vb*vg);
+      err += 0.04*(vr*vr + vg*vg + vb*vb);
 #endif
       if (err < minerr) { minerr = err; *fg = i-1; *bg = j-1; }
     }
@@ -85,5 +83,3 @@ void render_color(const vec3& c, int x, int y) {
   else printf(" ");
 #endif
 }
-
-
