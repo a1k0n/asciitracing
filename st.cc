@@ -106,9 +106,9 @@ int main()
     vec3 camx = normalize(cross(camz, vec3(0,1,0)));
     vec3 camy = normalize(cross(camx, camz));
     for(y=0;y<24;y++) {
+      int fg=7, bg=0;
       for(x=0;x<80;x++) {
         vec3 color = vec3(0,0,0);
-        int fg=-1, bg=-1;
 #ifdef AA
         for(float xx = -0.25;xx<=0.25;xx+=0.5) { // 2 x samples
           for(float yy = -0.75;yy<=0.75;yy+=0.5) { // 4 y samples

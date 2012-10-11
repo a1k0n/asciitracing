@@ -74,16 +74,29 @@ void render_color(const vec3& c, int x, int y, int *cur_fg, int *cur_bg) {
   unsigned int entry = color_LUT[r+g*16+b*256];
   int fg = entry&31;
   int bg = entry>>5;
-#if 0
-  if (bg == *cur_bg && fg == *cur_fg) {
-    if (bg == -1 && fg == -1) putchar(' ');
-    else putchar('#');
-  }
-  else {
-#endif
-    if(bg > 0) printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+(bg&7), 30+(fg&7));
-    else if(fg > 0) printf("\x1b[0;%d;%dm#", !!(fg&8), 30+(fg&7));
-    else printf("\x1b[0m ");
-    *cur_fg = fg;
+  // optimal rules:
+  if (bg == fg) {
+    if (bg != *cur_bg) printf("\x1b[%dm ", 40+bg);
+    else putchar(' ');
     *cur_bg = bg;
+  } else {
+    if (fg == *cur_fg) {
+      if (bg != *cur_bg) printf("\x1b[%dm#", 40+bg);
+      else putchar('#');
+    } else if (fg&8 == (*cur_fg)&8) {
+      // don't need to change bold attribute
+      if (bg != *cur_bg) printf("\x1b[%d;%dm#", 40+bg, 30+(fg&7));
+      else printf("\x1b[%dm#", 30+(fg&7));
+    } else if (fg&8) {
+      // need to set bold attribute
+      if (bg != *cur_bg) printf("\x1b[1;%d;%dm#", 40+bg, 30+(fg&7));
+      else printf("\x1b[1;%dm#", 30+(fg&7));
+    } else {
+      // need to reset both bg and fg
+      if ((*cur_fg)&8) printf("\x1b[0;%d;%dm#", 40+bg, 30+(fg&7));
+      else printf("\x1b[%d;%dm#", 40+bg, 30+(fg&7));
+    }
+    *cur_bg = bg;
+    *cur_fg = fg;
+  }
 }
