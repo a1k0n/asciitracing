@@ -30,9 +30,9 @@ float sdSphere( vec3 p, float s )
 float dist(const vec3 &p, int *m) {
   *m = -1;
   float d = 1e30;
-  float dplane = p.y;
+  float dplane = p.y + 50;
   if (dplane < d) {
-    *m = ((lrint(p.x*0.03)&1)^(lrint(p.z*0.03)&1));
+    *m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
     d = dplane;
   }
 #if 1
@@ -47,13 +47,21 @@ float dist(const vec3 &p, int *m) {
     d = dthingy;
   }
 #endif
-#if 1
+#if 0
   float dsphere2 = sdSphere(p - vec3(0,40,80), 15);
   if (dsphere2 < d) {
     *m = 3;
     d = dsphere2;
   }
 #endif
+  {
+    vec3 q(p.x, p.y, 0);
+    float dcyl = std::max(fabsf(p.z) - 20.0f, length(q) - 40.0f);
+    if (dcyl < d) {
+      d = dcyl;
+      *m = 3;
+    }
+  }
   return d;
 }
 
@@ -88,19 +96,19 @@ int main()
   int x,y;
   render_init();
   for(;;) {
-    vec3 campos = vec3(100*sin(frame_*0.01), 110 + 100*sin(frame_*0.03), -100*cos(frame_*0.01));
+    vec3 campos = vec3(100*sin(frame_*0.01), 60 + 40*sin(frame_*0.03), -100*cos(frame_*0.01));
     vec3 camz = normalize(campos*-1);
     //vec3 lightpos = vec3(200,400,campos.z);
     //vec3 lightpos = campos;
     //vec3 lightpos = vec3(100*sin(frame_*0.08), 50, -100*cos(frame_*0.04));
-    vec3 lightpos = vec3(100*sin(frame_*0.037), 200, campos.z);
+    vec3 lightpos = vec3(100*sin(frame_*0.037), 140, campos.z);
     vec3 lightpos2 = vec3(0, 200, 0);
     vec3 camx = normalize(cross(camz, vec3(0,1,0)));
     vec3 camy = normalize(cross(camx, camz));
     for(y=0;y<24;y++) {
       for(x=0;x<80;x++) {
         vec3 color = vec3(0,0,0);
-        int fg, bg;
+        int fg=-1, bg=-1;
 #ifdef AA
         for(float xx = -0.25;xx<=0.25;xx+=0.5) { // 2 x samples
           for(float yy = -0.75;yy<=0.75;yy+=0.5) { // 4 y samples
@@ -123,9 +131,9 @@ int main()
 #ifdef AA
           }
         }
-        render_color(color * 0.125, x, y);
+        render_color(color * 0.125, x, y, &fg, &bg);
 #else
-        render_color(color, x, y);
+        render_color(color, x, y, &fg, &bg);
 #endif
       }
       printf("\x1b[0m\n");

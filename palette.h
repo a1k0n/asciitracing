@@ -4,9 +4,8 @@
 // #555557575353:#EFEF29292929:#8A8AE2E23434:#FCFCE9E94F4F:
 // #72729F9FCFCF:#ADAD7F7FA8A8:#3434E2E2E2E2:#EEEEEEEEECEC
 int palette_[] = {
-  0x00, 0x00, 0x00, // virtual color -1
 #if 0
-  0x2e, 0x34, 0x36,
+  0,0,0, // 0x2e, 0x34, 0x36, // color 0 used to be dark grey but isn't anymore?
   0xcc, 0x00, 0x00,
   0x4e, 0x9a, 0x06,
   0xc4, 0xa0, 0x00,

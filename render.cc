@@ -18,8 +18,8 @@ void nearestcolor(const vec3& c, int *fg, int *bg) {
   // brute force
   float minerr = 1e30;
   *fg = -1; *bg = -1;
-  for(int i = 0; i < 17; i++) {
-    for(int j = 0; j < 9; j++) {
+  for(int i = 0; i < 16; i++) {
+    for(int j = 0; j < 8; j++) {
       float er = 0.7*gamma(palette_[j*3  ]) + 0.3*gamma(palette_[i*3  ]) - c.x;
       float eg = 0.7*gamma(palette_[j*3+1]) + 0.3*gamma(palette_[i*3+1]) - c.y;
       float eb = 0.7*gamma(palette_[j*3+2]) + 0.3*gamma(palette_[i*3+2]) - c.z;
@@ -41,7 +41,7 @@ void nearestcolor(const vec3& c, int *fg, int *bg) {
       float err = er*er + eg*eg + eb*eb;
       err += 0.04*(vr*vr + vg*vg + vb*vb);
 #endif
-      if (err < minerr) { minerr = err; *fg = i-1; *bg = j-1; }
+      if (err < minerr) { minerr = err; *fg = i; *bg = j; }
     }
   }
   //printf("minerr=%g best=%d,%d c=%g,%g,%g\n", minerr, *fg, *bg, c.x, c.y, c.z);
@@ -58,7 +58,7 @@ void render_init() {
       for (int b = 0; b < 16; b++) {
         int fg, bg;
         nearestcolor(vec3(r*scale, g*scale, b*scale), &fg, &bg);
-        color_LUT[r+g*16+b*256] = (bg+1)*32+(fg+1);
+        color_LUT[r+g*16+b*256] = bg*32+fg;
         // printf("%x%x%x=f=%d b=%d\n", r,g,b, fg, bg);
       }
     }
@@ -66,20 +66,24 @@ void render_init() {
 }
 
 // nearest color fg/bg, dithering offset x,y
-void render_color(const vec3& c, int x, int y) {
+void render_color(const vec3& c, int x, int y, int *cur_fg, int *cur_bg) {
   float o = bayer_matrix[(x&3) + (y&3)*4]*(1.0/8.0);
   int r = std::max(0, std::min(15, (int) (c.x*15.0 - o)));
   int g = std::max(0, std::min(15, (int) (c.y*15.0 - o)));
   int b = std::max(0, std::min(15, (int) (c.z*15.0 - o)));
   unsigned int entry = color_LUT[r+g*16+b*256];
-  int fg = (entry&31)-1;
-#if 1
-  int bg = (entry>>5)-1;
-  if(bg >= 0) printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+(bg&7), 30+(fg&7));
-  else if(fg >= 0) printf("\x1b[0;%d;%dm#", !!(fg&8), 30+(fg&7));
-  else printf("\x1b[0m ");
-#else
-  if(fg >= 0) printf("\x1b[%d;%dm#", !!(fg&8), 30+(fg&7));
-  else printf(" ");
+  int fg = entry&31;
+  int bg = entry>>5;
+#if 0
+  if (bg == *cur_bg && fg == *cur_fg) {
+    if (bg == -1 && fg == -1) putchar(' ');
+    else putchar('#');
+  }
+  else {
 #endif
+    if(bg > 0) printf("\x1b[%d;%d;%dm#", !!(fg&8), 40+(bg&7), 30+(fg&7));
+    else if(fg > 0) printf("\x1b[0;%d;%dm#", !!(fg&8), 30+(fg&7));
+    else printf("\x1b[0m ");
+    *cur_fg = fg;
+    *cur_bg = bg;
 }
