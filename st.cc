@@ -26,6 +26,16 @@ float sdSphere( vec3 p, float s )
   return length(p)-s;
 }
 
+vec3 rotateY(vec3 p, float a) {
+  float ca = cos(a), sa = sin(a);
+  return vec3(p.x*ca-p.z*sa, p.y, p.x*sa+p.z*ca);
+}
+
+vec3 rotateX(vec3 p, float a) {
+  float ca = cos(a), sa = sin(a);
+  return vec3(p.x, p.y*ca-p.z*sa, p.y*sa+p.z*ca);
+}
+
 // returns minimum distance to scene, material m, and normal n
 float dist(const vec3 &p, int *m) {
   *m = -1;
@@ -35,7 +45,7 @@ float dist(const vec3 &p, int *m) {
     *m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
     d = dplane;
   }
-#if 1
+#if 0
   //vec3 thingycenter = vec3(0, 40+20*sin(frame_*0.1), 0);
   vec3 q = vec3(fmod(fabs(p.x), 100) - 50, p.y - 40, p.z);
   //vec3 thingycenter = vec3(0, 40, 0);
@@ -54,6 +64,7 @@ float dist(const vec3 &p, int *m) {
     d = dsphere2;
   }
 #endif
+#if 0
   {
     vec3 q(p.x, p.y, 0);
     float dcyl = std::max(fabsf(p.z) - 20.0f, length(q) - 40.0f);
@@ -61,6 +72,14 @@ float dist(const vec3 &p, int *m) {
       d = dcyl;
       *m = 3;
     }
+  }
+#endif
+
+  vec3 q = rotateX(rotateY(p, -frame_*0.07), frame_*0.025);
+  float dtorus = length(vec3(length(vec3(q.x, q.y, 0)) - 50, q.z, 0)) - 20;
+  if (dtorus < d) {
+    d = dtorus;
+    *m = 2;
   }
   return d;
 }
@@ -96,7 +115,7 @@ int main()
   int x,y;
   render_init();
   for(;;) {
-    vec3 campos = vec3(100*sin(frame_*0.01), 60 + 40*sin(frame_*0.03), -100*cos(frame_*0.01));
+    vec3 campos = vec3(120*sin(frame_*0.01), 40 + 30*sin(frame_*0.03), -120*cos(frame_*0.01));
     vec3 camz = normalize(campos*-1);
     //vec3 lightpos = vec3(200,400,campos.z);
     //vec3 lightpos = campos;
