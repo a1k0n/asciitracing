@@ -77,24 +77,29 @@ void render_color(const vec3& c, int x, int y, int *cur_fg, int *cur_bg) {
   // optimal rules:
   if (bg == fg) {
     if (bg != *cur_bg) printf("\x1b[%dm ", 40+bg);
-    else putchar(' ');
+    else
+      putchar(' ');
     *cur_bg = bg;
   } else {
     if (fg == *cur_fg) {
       if (bg != *cur_bg) printf("\x1b[%dm#", 40+bg);
-      else putchar('#');
-    } else if (fg&8 == (*cur_fg)&8) {
+      else
+        putchar('#');
+    } else if ((fg&8) == ((*cur_fg)&8)) {
       // don't need to change bold attribute
       if (bg != *cur_bg) printf("\x1b[%d;%dm#", 40+bg, 30+(fg&7));
-      else printf("\x1b[%dm#", 30+(fg&7));
+      else
+        printf("\x1b[%dm#", 30+(fg&7));
     } else if (fg&8) {
       // need to set bold attribute
       if (bg != *cur_bg) printf("\x1b[1;%d;%dm#", 40+bg, 30+(fg&7));
-      else printf("\x1b[1;%dm#", 30+(fg&7));
+      else
+        printf("\x1b[1;%dm#", 30+(fg&7));
     } else {
       // need to reset both bg and fg
       if ((*cur_fg)&8) printf("\x1b[0;%d;%dm#", 40+bg, 30+(fg&7));
-      else printf("\x1b[%d;%dm#", 40+bg, 30+(fg&7));
+      else
+        printf("\x1b[%d;%dm#", 40+bg, 30+(fg&7));
     }
     *cur_bg = bg;
     *cur_fg = fg;
