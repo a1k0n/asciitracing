@@ -8,13 +8,13 @@
 
 float frame_ = 0;
 
-vec3 lcol(0.7,0.5,0.5);
+vec3 lcol(0.5,0.7,0.5);
 float mshiny[] = {100,10,10,10};
 vec3 mcol[] = {
   vec3(1.0f, 1.0f, 1.0f),
   vec3(0.0f, 0.0f, 1.0f),
   vec3(1.0f, 0.2f, 0.0f),
-  vec3(0.2f, 1.0f, 0.0f)};
+  vec3(0.22f, 0.62f, 0.0f)};
 
 float udRoundBox(const vec3& p, const vec3& b, float r)
 {
@@ -37,10 +37,11 @@ vec3 rotateX(vec3 p, float a) {
 }
 
 float arc1(const vec3 &q, float r1, float r2, float zpos) {
+  //return std::max(
+  //    fabsf(q.z + zpos), std::max(
   return std::max(
-      fabsf(q.z + zpos), std::max(
-          std::max(-0.6f*q.x - q.y, 0.6f*q.x - q.y),
-          fabsf(length(vec3(q.x, q.y, 0)) - r1))) - r2;
+          std::max(-q.x - q.y, q.x - q.y),
+          fabsf(length(vec3(q.x, q.y, 0)) - r1)) - r2;
 }
 
 // returns minimum distance to scene, material m, and normal n
@@ -59,9 +60,9 @@ float dist(const vec3 &p, int *m) {
       std::max(q.z - 10.0f, -10.0f - q.z),
       length(vec3(q.x, q.y, 0)) - 50.0f);
 
-  dcyl = std::max(dcyl, -arc1(q, 30, 5, 6));
-  dcyl = std::max(dcyl, -arc1(q - vec3(0, -10, 0), 20, 5, 6));
-  dcyl = std::max(dcyl, -arc1(q - vec3(0, -20, 0), 10, 5, 6));
+  dcyl = std::max(dcyl, -arc1(q - vec3(0, -10, 0), 40, 5, 6));
+  dcyl = std::max(dcyl, -arc1(q - vec3(0, -25, 0), 35, 4, 6));
+  dcyl = std::max(dcyl, -arc1(q - vec3(0, -35, 0), 30, 3, 6));
   if (dcyl < d) {
     d = dcyl;
     *m = 3;
@@ -117,9 +118,9 @@ int main()
 #ifdef AA
         for(float xx = -0.25;xx<=0.25;xx+=0.5) { // 2 x samples
           for(float yy = -0.75;yy<=0.75;yy+=0.5) { // 4 y samples
-            vec3 dir = normalize(vec3(x-40.0f+xx,25.0f-2.0f*y+yy,20.0f));
+            vec3 dir = normalize(vec3(x-40.0f+xx,25.0f-2.0f*y+yy,70.0f));
 #else
-            vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,50.0f));
+            vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,70.0f));
 #endif
             dir = camx*dir.x + camy*dir.y + camz*dir.z;
             float t = 0;
