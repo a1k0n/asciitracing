@@ -50,11 +50,13 @@ float dist(const vec3 &p, int *m) {
   float d = 1e30;
   float dplane = p.y + 50;
   if (dplane < d) {
-    *m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
+    // *m = ((lrint(p.x*0.01)&1)^(lrint(p.z*0.01)&1));
+    *m = 0;
     d = dplane;
   }
   //vec3 q = rotateX(rotateY(p, -frame_*0.07), frame_*0.025);
-  vec3 q = rotateY(p, frame_*0.07);
+  //vec3 q = rotateY(p, frame_*0.07);
+  vec3 q = p;
 
   float dcyl = std::max(
       std::max(q.z - 10.0f, -10.0f - q.z),
@@ -79,7 +81,7 @@ float shadow(const vec3& ro, const vec3& rd, float mint, float maxt) {
     if (h < 0.001) {
       return 0;
     }
-    res = std::min( res, 10.0f*h/t );
+    res = std::min( res, 20.0f*h/t );
     t += h;
   }
   return res;
@@ -102,13 +104,9 @@ int main()
   int x,y;
   render_init();
   for(;;) {
-    vec3 campos = vec3(120*sin(frame_*0.01), 40 + 30*sin(frame_*0.03), -120*cos(frame_*0.01));
+    vec3 campos = vec3(130*sin(frame_*0.02), 50 + 40*sin(frame_*0.03), -130*cos(frame_*0.02));
+    vec3 lightpos = vec3(200.0*sin(frame_*0.05),100,campos.z);
     vec3 camz = normalize(campos*-1);
-    //vec3 lightpos = vec3(200,400,campos.z);
-    //vec3 lightpos = campos;
-    //vec3 lightpos = vec3(100*sin(frame_*0.08), 50, -100*cos(frame_*0.04));
-    vec3 lightpos = vec3(100*sin(frame_*0.037), 40, campos.z);
-    vec3 lightpos2 = vec3(0, 200, 0);
     vec3 camx = normalize(cross(camz, vec3(0,1,0)));
     vec3 camy = normalize(cross(camx, camz));
     for(y=0;y<24;y++) {
