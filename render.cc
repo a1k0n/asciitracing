@@ -48,7 +48,6 @@ void nearestcolor(const vec3& c, int *fg, int *bg) {
 }
 
 int color_LUT[16*16*16];
-
 }
 
 void render_init() {
@@ -58,7 +57,7 @@ void render_init() {
       for (int b = 0; b < 16; b++) {
         int fg, bg;
         nearestcolor(vec3(r*scale, g*scale, b*scale), &fg, &bg);
-        color_LUT[r+g*16+b*256] = bg*32+fg;
+        color_LUT[r + g*16 + b*256] = bg*32+fg;
         // printf("%x%x%x=f=%d b=%d\n", r,g,b, fg, bg);
       }
     }

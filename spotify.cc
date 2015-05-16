@@ -8,10 +8,9 @@
 
 float frame_ = 0;
 
-vec3 lcol(0.5,0.7,0.5);
 float mshiny[] = {100,10,10,10};
 vec3 mcol[] = {
-  vec3(1.0f, 1.0f, 1.0f),
+  vec3(0.7f, 0.7f, 1.0f),
   vec3(0.0f, 0.0f, 1.0f),
   vec3(1.0f, 0.2f, 0.0f),
   vec3(0.22f, 0.62f, 0.0f)};
@@ -63,8 +62,8 @@ float dist(const vec3 &p, int *m) {
       length(vec3(q.x, q.y, 0)) - 50.0f);
 
   dcyl = std::max(dcyl, -arc1(q - vec3(0, -10, 0), 40, 5, 6));
-  dcyl = std::max(dcyl, -arc1(q - vec3(0, -25, 0), 35, 4, 6));
-  dcyl = std::max(dcyl, -arc1(q - vec3(0, -35, 0), 30, 3, 6));
+  dcyl = std::max(dcyl, -arc1(q - vec3(0, -25, 0), 35, 5, 6));
+  dcyl = std::max(dcyl, -arc1(q - vec3(0, -35, 0), 27, 5, 6));
   if (dcyl < d) {
     d = dcyl;
     *m = 3;
@@ -95,12 +94,11 @@ vec3 lighting(const vec3 &p, int m, const vec3& lightpos) {
   int _m;
   float diffuse = std::max(0.0f, 10.0f*dist(p+lightdir*0.1, &_m));
   float s = std::max(0.3f, shadow(p, lightdir, 0.01, length(p-lightpos)));
-  float l = std::max(0.1f, diffuse * s);
-  return mcol[m]*l + lcol*pow(l, mshiny[m]);
+  float l = std::max(0.2f, diffuse * s);
+  return mcol[m]*(l + pow(l, mshiny[m]));
 }
 
-int main()
-{
+int main() {
   int x,y;
   render_init();
   for(;;) {
@@ -113,32 +111,20 @@ int main()
       int fg=7, bg=0;
       for(x=0;x<80;x++) {
         vec3 color = vec3(0,0,0);
-#ifdef AA
-        for(float xx = -0.25;xx<=0.25;xx+=0.5) { // 2 x samples
-          for(float yy = -0.75;yy<=0.75;yy+=0.5) { // 4 y samples
-            vec3 dir = normalize(vec3(x-40.0f+xx,25.0f-2.0f*y+yy,70.0f));
-#else
-            vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,70.0f));
-#endif
-            dir = camx*dir.x + camy*dir.y + camz*dir.z;
-            float t = 0;
-            int m = -1;
-            for (int iter = 0; iter < 64 && t < 1e6; iter++) {
-              vec3 p = dir*t + campos;
-              float d = dist(p, &m);
-              if (d < 0.001) {
-                color = color + lighting(p, m, lightpos);
-                break;
-              }
-              t += d;
-            }
-#ifdef AA
+        vec3 dir = normalize(vec3(x-40.0f,25.0f-2.0f*y,70.0f));
+        dir = camx*dir.x + camy*dir.y + camz*dir.z;
+        float t = 0;
+        int m = -1;
+        for (int iter = 0; iter < 64 && t < 1e6; iter++) {
+          vec3 p = dir*t + campos;
+          float d = dist(p, &m);
+          if (d < 0.001) {
+            color = color + lighting(p, m, lightpos);
+            break;
           }
+          t += d;
         }
-        render_color(color * 0.125, x, y, &fg, &bg);
-#else
         render_color(color, x, y, &fg, &bg);
-#endif
       }
       printf("\x1b[0m\n");
     }
