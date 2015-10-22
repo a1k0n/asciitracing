@@ -1,5 +1,8 @@
 Sphere tracing, rendered in ASCII (well, VT100/ANSI terminal emulation really)
 
+Example:
+![spotify logo preview](http://imgur.com/amEG2Ae.gif)
+
 This is basically the ASCII equivalent of the GLSL raymarching sandbox:
 http://glsl.heroku.com/e#1996.0
 
