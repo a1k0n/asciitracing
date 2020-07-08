@@ -3,8 +3,7 @@ Sphere tracing, rendered in ASCII (well, VT100/ANSI terminal emulation really)
 Example:
 ![spotify logo preview](http://imgur.com/amEG2Ae.gif)
 
-This is basically the ASCII equivalent of the GLSL raymarching sandbox:
-http://glsl.heroku.com/e#1996.0
+This is basically the ASCII equivalent of a basic [Shadertoy](https://www.shadertoy.com/) raymarching demo.
 
 There are a couple demos in here, one which has a bunch of random objects on
 top of a checkerboard with the light positioned at the camera, and another one
